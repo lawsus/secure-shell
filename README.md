@@ -1,2 +1,3 @@
-# secure-shell
-Secure Shell: A simple secure shell implementation in C.
+# Secure Shell
+
+**Secure Shell** is a simple secure shell (SSH) implementation in C.
