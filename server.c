@@ -23,8 +23,9 @@ void key_exchange(int client_socket, long long *shared_secret) {
     char buffer[1024] = {0};
     // dh key exchange
     srand(time(NULL));
-    long long g = generate_random_long_long(LOWER, UPPER);
     long long p = generate_random_prime(LOWER, UPPER);
+    // g must be a primitive root modulo p
+    long long g = generate_random_long_long(LOWER, UPPER);
     long long server_private_key = generate_random_long_long(LOWER, UPPER);
     long long server_public_key = compute_public_key(g, server_private_key, p);
 
