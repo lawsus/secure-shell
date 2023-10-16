@@ -10,39 +10,49 @@
 #include "diffie_hellman.h"
 #include "crypto_utils.h"
 
+#define LOWER 1000000000000
+#define UPPER 9999999999999
+
 void reap_zombies(int signal_number) {
     (void) signal_number;
     // Reap zombie processes
     while (waitpid(-1, NULL, WNOHANG) > 0);
 }
 
-void handle_client(int client_socket) {
+void key_exchange(int client_socket, long long *shared_secret) {
     char buffer[1024] = {0};
-
     // dh key exchange
     srand(time(NULL));
-    long long lower = 1000000000000;
-    long long upper = 9999999999999;
-    long long g = generate_random_long_long(lower, upper);
-    printf("Generating random prime...\n");
-    long long p = generate_random_prime(lower, upper);
-    printf("...%lld.\n", p);
-
-    long long private_session_key = generate_random_long_long(lower, upper);
-    printf("g: %lld, p: %lld\n", g, p);
-    long long public_session_key = compute_public_key(g, private_session_key, p);
-    printf("public session key: %lld\n", public_session_key);
+    long long g = generate_random_long_long(LOWER, UPPER);
+    long long p = generate_random_prime(LOWER, UPPER);
+    long long server_private_key = generate_random_long_long(LOWER, UPPER);
+    long long server_public_key = compute_public_key(g, server_private_key, p);
 
     // send base point g, prime g, and public session key
-    sprintf(buffer, "%lld %lld %lld", g, p, public_session_key);
+    sprintf(buffer, "%lld %lld %lld", g, p, server_public_key);
     send(client_socket, buffer, strlen(buffer), 0);
+    print_sent("G", g);
+    print_sent("p", p);
+    print_sent("server public key", server_public_key);
 
-    memset(buffer, 0, sizeof(buffer));
+    recv(client_socket, buffer, 1024, 0);
+    long long client_public_key;
+    sscanf(buffer, "%lld", &client_public_key);
+    print_received("client public key", client_public_key);
 
+    *shared_secret = compute_shared_secret(client_public_key, server_private_key, p);
+}
+
+void handle_client(int client_socket) {
+    long long shared_secret;
+    key_exchange(client_socket, &shared_secret);
+    print_shared_secret(shared_secret);
+
+    char buffer[1024] = {0};
     while (1) {
         ssize_t bytes_read = read(client_socket, buffer, 1024);
         if (bytes_read <= 0) {
-            printf("Client disconnected or error occurred.\n");
+            print_disconnected("Client");
             break;
         }
         printf("Message received: %s\n", buffer);
@@ -74,7 +84,6 @@ void start_server() {
 
         pid_t pid = fork();
         if (pid < 0) {
-            // fork failed
             print_fork_failed();
             exit(1);
         } else if (pid > 0) {
@@ -93,5 +102,3 @@ int main() {
     start_server();
     return 0;
 }
-
-// gcc -o server server.c format.c diffie_hellman.c crypto_utils.c

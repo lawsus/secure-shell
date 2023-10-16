@@ -2,7 +2,7 @@ CC = gcc
 
 CFLAGS = -Wall -Wextra
 
-CLIENT_SRCS = client.c diffie_hellman.c crypto_utils.c
+CLIENT_SRCS = client.c diffie_hellman.c crypto_utils.c format.c
 SERVER_SRCS = server.c format.c diffie_hellman.c crypto_utils.c
 
 CLIENT_EXEC = client

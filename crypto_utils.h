@@ -19,6 +19,11 @@ int is_prime(long long n);
 long long generate_random_prime(long long lower, long long upper);
 
 /**
+ * This function calculates a*b % mod
+ */
+long long mult(long long a, long long b, long long mod);
+
+/**
  * This function calculates base^exp % mod.
  */
 long long power(long long base, long long exp, long long mod);

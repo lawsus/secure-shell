@@ -42,7 +42,20 @@ long long generate_random_prime(long long lower, long long upper) {
 // }
 
 
-// TODO: Fix overflow in intermediate calculations (res * base) and (base * base).
+// mult: Fix overflow in intermediate calculations (res * base) and (base * base).
+
+long long mult(long long a, long long b, long long mod) {
+    long long res = 0;
+    a = a % mod;
+    while (b > 0) {
+        if (b % 2 == 1) {
+            res = (res + a) % mod;
+        }
+        a = (a * 2) % mod;
+        b /= 2;
+    }
+    return res % mod;
+}
 
 // return (base ^ exp) % mod
 // (a * b) % p == ((a % p) * (b % p)) mod p (necessary ?)
@@ -52,11 +65,11 @@ long long power(long long base, long long exp, long long mod) {
     while (exp > 0) {
         if (exp % 2 == 1) {
             // res = ((res % mod) * (base % mod)) % mod;
-            res = (res * base) % mod;
+            res = mult(res, base, mod);
         }
         exp = exp >> 1;
         // base = ((base % mod) * (base % mod)) % mod;
-        base = (base * base) % mod;
+        base = mult(base, base, mod);
     }
     return res;
 }

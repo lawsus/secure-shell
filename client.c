@@ -6,6 +6,30 @@
 
 #include "diffie_hellman.h"
 #include "crypto_utils.h"
+#include "format.h"
+
+#define LOWER 1000000000000
+#define UPPER 9999999999999
+
+void key_exchange(int sock, long long *shared_secret) {
+    char buffer[1024] = {0};
+    // dh key exchange
+    recv(sock, buffer, 1024, 0);
+    long long p, g, server_public_key;
+    sscanf(buffer, "%lld %lld %lld", &p, &g, &server_public_key);
+    print_received("p", p);
+    print_received("G", g);
+    print_received("server public key", server_public_key);
+
+    long long client_private_key = generate_random_long_long(LOWER, UPPER);
+    long long client_public_key = compute_public_key(g, client_private_key, p);
+
+    sprintf(buffer, "%lld", client_public_key);
+    send(sock, buffer, strlen(buffer), 0);
+    print_sent("client public key", client_public_key);
+
+    *shared_secret = compute_shared_secret(server_public_key, client_private_key, p);
+}
 
 void start_client() {
     struct sockaddr_in address;
@@ -18,22 +42,11 @@ void start_client() {
 
     connect(sock, (struct sockaddr *)&address, sizeof(address));
 
+    long long shared_secret;
+    key_exchange(sock, &shared_secret);
+    print_shared_secret(shared_secret);
+
     char buffer[1024] = {0};
-
-    // dh key exchange
-    recv(sock, buffer, 1024, 0);
-    long long g, p, received_public_key;
-    sscanf(buffer, "%lld %lld %lld", &g, &p, &received_public_key);
-    printf("Received %lld, %lld, %lld\n", g, p, received_public_key);
-
-    long long lower = 1000000000000;
-    long long upper = 9999999999999;
-    long long private_session_key = generate_random_long_long(lower, upper);
-    long long public_session_key = compute_public_key(g, private_session_key, p);
-
-    long long shared_session_secret = compute_shared_secret(public_session_key, private_session_key, p);
-    
-    memset(buffer, 0, sizeof(buffer));
 
     while (1) {
         printf("> ");
@@ -45,7 +58,7 @@ void start_client() {
 
         ssize_t bytes_received = read(sock, buffer, 1024);
         if (bytes_received <= 0) {
-            printf("Server disconnected or error occurred.\n");
+            print_disconnected("Server");
             break;
         }
         buffer[bytes_received] = '\0';
@@ -58,5 +71,3 @@ int main() {
     start_client();
     return 0;
 }
-
-// gcc -o client client.c diffie_hellman.c crypto_utils.c
