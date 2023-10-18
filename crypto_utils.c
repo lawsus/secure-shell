@@ -28,7 +28,7 @@ long long generate_random_prime(long long lower, long long upper) {
 }
 
 // Old leetcode implementation of power
-// long long power(long long base, long long exp, long long mod) {
+// long long power_mod(long long base, long long exp, long long mod) {
 //     long long res = 1;
 //     base = base % mod;
 //     while (exp != 0) {
@@ -44,7 +44,7 @@ long long generate_random_prime(long long lower, long long upper) {
 
 // mult: Fix overflow in intermediate calculations (res * base) and (base * base).
 
-long long mult(long long a, long long b, long long mod) {
+long long mult_mod(long long a, long long b, long long mod) {
     long long res = 0;
     a = a % mod;
     while (b > 0) {
@@ -59,17 +59,50 @@ long long mult(long long a, long long b, long long mod) {
 
 // return (base ^ exp) % mod
 // (a * b) % p == ((a % p) * (b % p)) mod p (necessary ?)
-long long power(long long base, long long exp, long long mod) {
+long long power_mod(long long base, long long exp, long long mod) {
     long long res = 1;
     base = base % mod;
     while (exp > 0) {
         if (exp % 2 == 1) {
             // res = ((res % mod) * (base % mod)) % mod;
-            res = mult(res, base, mod);
+            res = mult_mod(res, base, mod);
         }
         exp = exp >> 1;
         // base = ((base % mod) * (base % mod)) % mod;
-        base = mult(base, base, mod);
+        base = mult_mod(base, base, mod);
     }
     return res;
+}
+
+// is_primitive_root and find_primitive_root generated using chat gpt
+int is_primitive_root(long long g, long long p) {
+    long long phi = p - 1;  // Since p is prime
+    // Find all prime factors of phi
+    long long n = phi;
+    for (long long i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            // Check if g^phi/q is congruent to 1 mod p
+            if (power_mod(g, phi/i, p) == 1) {
+                return 0;
+            }
+            while (n % i == 0) {
+                n /= i;
+            }
+        }
+    }
+    if (n > 1) {
+        if (power_mod(g, phi/n, p) == 1) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+long long find_primitive_root(long long p) {
+    for (long long g = 2; g < p; g++) {
+        if (is_primitive_root(g, p)) {
+            return g;
+        }
+    }
+    return -1;  // Shouldn't reach here for prime p
 }

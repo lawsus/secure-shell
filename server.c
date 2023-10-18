@@ -13,10 +13,19 @@
 #define LOWER 1000000000000
 #define UPPER 9999999999999
 
+static int server_fd;
+
 void reap_zombies(int signal_number) {
     (void) signal_number;
     // Reap zombie processes
     while (waitpid(-1, NULL, WNOHANG) > 0);
+}
+
+void handle_sigint(int sig) {
+    (void)sig;  // To avoid unused parameter warning
+    print_disconnected("Server");
+    close(server_fd);
+    exit(0);
 }
 
 void key_exchange(int client_socket, long long *shared_secret) {
@@ -25,15 +34,16 @@ void key_exchange(int client_socket, long long *shared_secret) {
     srand(time(NULL));
     long long p = generate_random_prime(LOWER, UPPER);
     // g must be a primitive root modulo p
-    long long g = generate_random_long_long(LOWER, UPPER);
+    long long g = find_primitive_root(p);
     long long server_private_key = generate_random_long_long(LOWER, UPPER);
+    // printf("server private key: %lld\n", server_private_key);
     long long server_public_key = compute_public_key(g, server_private_key, p);
 
-    // send base point g, prime g, and public session key
-    sprintf(buffer, "%lld %lld %lld", g, p, server_public_key);
+    // send prime p, base point g, and public session key
+    sprintf(buffer, "%lld %lld %lld", p, g, server_public_key);
     send(client_socket, buffer, strlen(buffer), 0);
-    print_sent("G", g);
     print_sent("p", p);
+    print_sent("G", g);
     print_sent("server public key", server_public_key);
 
     recv(client_socket, buffer, 1024, 0);
@@ -43,6 +53,8 @@ void key_exchange(int client_socket, long long *shared_secret) {
 
     *shared_secret = compute_shared_secret(client_public_key, server_private_key, p);
 }
+
+// 9934778517649^656574425985 % 6612879338959
 
 void handle_client(int client_socket) {
     long long shared_secret;
@@ -64,7 +76,7 @@ void handle_client(int client_socket) {
 }
 
 void start_server() {
-    int server_fd, new_socket;
+    int new_socket;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
 
@@ -77,6 +89,7 @@ void start_server() {
     listen(server_fd, 3);
 
     signal(SIGCHLD, reap_zombies);
+    signal(SIGINT, handle_sigint);
 
     printf("Server is listening...\n");
     while (1) {

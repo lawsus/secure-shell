@@ -22,6 +22,7 @@ void key_exchange(int sock, long long *shared_secret) {
     print_received("server public key", server_public_key);
 
     long long client_private_key = generate_random_long_long(LOWER, UPPER);
+    // printf("client private key: %lld\n", client_private_key);
     long long client_public_key = compute_public_key(g, client_private_key, p);
 
     sprintf(buffer, "%lld", client_public_key);
@@ -30,6 +31,7 @@ void key_exchange(int sock, long long *shared_secret) {
 
     *shared_secret = compute_shared_secret(server_public_key, client_private_key, p);
 }
+// 656574425985^993477851764 % 6612879338959
 
 void start_client() {
     struct sockaddr_in address;
