@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "diffie_hellman.h": "c",
+        "signal.h": "c",
+        "format.h": "c",
+        "crypto_utils.h": "c"
+    }
+}
