@@ -2,11 +2,7 @@
 
 A simple **secure shell** (SSH) implementation in C with a focus on building cryptographic features from scratch.
 
-[GitHub Repository](https://github.com/lawsus/secure-shell)
-
----
-
-#### [Project Proposal](https://www.notion.so/Project-Proposal-8bac309c674b4210925ed08e682078cc)
+[Project Proposal](https://www.notion.so/Project-Proposal-8bac309c674b4210925ed08e682078cc)
 
 ---
 
