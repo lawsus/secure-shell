@@ -1,5 +1,7 @@
 #pragma once
 
+#include "bignum.h"
+
 /**
  * This function generates a random
  * num between lower and upper inclusive.
@@ -21,7 +23,8 @@ long long generate_random_prime(long long lower, long long upper);
 /**
  * This function calculates a*b % mod
  */
-long long mult_mod(long long a, long long b, long long mod);
+// long long mult_mod(long long a, long long b, long long mod);
+Bignum mult_mod(const Bignum* a, const Bignum* b, const Bignum* mod);
 
 /**
  * This function calculates base^exp % mod.

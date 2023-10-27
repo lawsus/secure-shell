@@ -1,3 +1,5 @@
+#include "bignum.h"
+
 /**
  * This function gets called whenever
  * a server fails to fork.
@@ -26,3 +28,9 @@ void print_shared_secret(long long val);
  * disconnects or an error occurs.
  */
 void print_disconnected(char *component);
+
+
+/**
+ * This function prints a bignum
+ */
+void print_Bignum(char* str, const Bignum* num);

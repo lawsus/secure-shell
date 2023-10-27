@@ -29,6 +29,7 @@ void handle_sigint(int sig) {
 }
 
 void key_exchange(int client_socket, long long *shared_secret) {
+    // printf("start key exchange\n");
     char buffer[1024] = {0};
     // dh key exchange
     srand(time(NULL));
@@ -36,6 +37,7 @@ void key_exchange(int client_socket, long long *shared_secret) {
     // g must be a primitive root modulo p
     long long g = find_primitive_root(p);
     long long server_private_key = generate_random_long_long(LOWER, UPPER);
+    // printf("SERVER PRIVATE KEY FOR TESTING: %lld\n", server_private_key);
     // printf("server private key: %lld\n", server_private_key);
     long long server_public_key = compute_public_key(g, server_private_key, p);
 
@@ -57,6 +59,7 @@ void key_exchange(int client_socket, long long *shared_secret) {
 // 9934778517649^656574425985 % 6612879338959
 
 void handle_client(int client_socket) {
+    // printf("handling client\n");
     long long shared_secret;
     key_exchange(client_socket, &shared_secret);
     print_shared_secret(shared_secret);
@@ -91,7 +94,7 @@ void start_server() {
     signal(SIGCHLD, reap_zombies);
     signal(SIGINT, handle_sigint);
 
-    printf("Server is listening...\n");
+    printf("Server is listening...\n\n");
     while (1) {
         new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
         printf("Client connected.\n");

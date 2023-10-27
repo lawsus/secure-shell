@@ -1,5 +1,8 @@
 #include "crypto_utils.h"
 #include <stdlib.h>
+#include <stdio.h>
+#include "bignum.h"
+#include "format.h"
 
 long long generate_random_long_long(long long lower, long long upper) {
     int rand_num = rand();
@@ -44,35 +47,89 @@ long long generate_random_prime(long long lower, long long upper) {
 
 // mult: Fix overflow in intermediate calculations (res * base) and (base * base).
 
-long long mult_mod(long long a, long long b, long long mod) {
-    long long res = 0;
-    a = a % mod;
-    while (b > 0) {
-        if (b % 2 == 1) {
-            res = (res + a) % mod;
+// long long mult_mod(long long a, long long b, long long mod) {
+//     long long res = 0;
+//     a = a % mod;
+//     while (b > 0) {
+//         if (b % 2 == 1) {
+//             res = (res + a) % mod;
+//         }
+//         a = (a * 2) % mod;
+//         b /= 2;
+//     }
+//     return res % mod;
+// }
+
+// // return (base ^ exp) % mod
+// // (a * b) % p == ((a % p) * (b % p)) mod p (necessary ?)
+// long long power_mod(long long base, long long exp, long long mod) {
+//     long long res = 1;
+//     base = base % mod;
+//     while (exp > 0) {
+//         if (exp % 2 == 1) {
+//             // res = ((res % mod) * (base % mod)) % mod;
+//             res = mult_mod(res, base, mod);
+//         }
+//         exp = exp >> 1;
+//         // base = ((base % mod) * (base % mod)) % mod;
+//         base = mult_mod(base, base, mod);
+//     }
+//     return res;
+// }
+
+// long long mult_mod(long long a, long long b, long long mod) {
+//     long long res = 0;
+//     a = a % mod;
+//     while (b > 0) {
+//         if (b % 2 == 1) {
+//             res = (res + a) % mod;
+//         }
+//         a = (a * 2) % mod;
+//         b /= 2;
+//     }
+//     return res % mod;
+// }
+
+Bignum mult_mod(const Bignum* a, const Bignum* b, const Bignum* mod) {
+    Bignum res_big = num_to_bignum(0);
+    Bignum two = num_to_bignum(2);
+    Bignum zero = num_to_bignum(0);
+
+    Bignum a_big = mod_bignum(a, mod);
+    Bignum b_big = *b;
+    while (is_greater_than(&b_big, &zero)) {
+        if (b_big.digits[0] % 2 == 1) {
+            res_big = add_bignum(&res_big, &a_big);
+            res_big = mod_bignum(&res_big, mod);
         }
-        a = (a * 2) % mod;
-        b /= 2;
+        a_big = mult_bignum(&a_big, &two);
+        a_big = mod_bignum(&a_big, mod);
+        b_big = div_bignum(&b_big, &two);
     }
-    return res % mod;
+    return mod_bignum(&res_big, mod);
 }
 
-// return (base ^ exp) % mod
-// (a * b) % p == ((a % p) * (b % p)) mod p (necessary ?)
 long long power_mod(long long base, long long exp, long long mod) {
-    long long res = 1;
-    base = base % mod;
-    while (exp > 0) {
-        if (exp % 2 == 1) {
-            // res = ((res % mod) * (base % mod)) % mod;
-            res = mult_mod(res, base, mod);
+    Bignum base_big = num_to_bignum(base);
+    Bignum exp_big = num_to_bignum(exp);
+    Bignum mod_big = num_to_bignum(mod);
+    Bignum res_big = num_to_bignum(1);
+    Bignum two = num_to_bignum(2);
+    Bignum zero = num_to_bignum(0);
+
+    base_big = mod_bignum(&base_big, &mod_big);
+    while (is_greater_than(&exp_big, &zero)) {
+
+        if (exp_big.digits[0] % 2 == 1) {
+            res_big = mult_mod(&res_big, &base_big, &mod_big);
         }
-        exp = exp >> 1;
-        // base = ((base % mod) * (base % mod)) % mod;
-        base = mult_mod(base, base, mod);
+        exp_big = div_bignum(&exp_big, &two);
+        base_big = mult_mod(&base_big, &base_big, &mod_big);
     }
-    return res;
+    // Convert back to long long
+    return bignum_to_num(&res_big);
 }
+
 
 // is_primitive_root and find_primitive_root generated using chat gpt
 int is_primitive_root(long long g, long long p) {

@@ -1,10 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
-// #include "bignum.h"
+#include "bignum.h"
 
 void print_fork_failed() {
     fprintf(stderr, "Fork Failed!\n");
     exit(1);
+}
+
+void print_Bignum(char* str, Bignum* num) {
+    printf("%s", str);
+    print_bignum(num);
 }
 
 // Updated print statements for bignums
@@ -31,5 +36,5 @@ void print_shared_secret(long long val) {
 }
 
 void print_disconnected(char *component) {
-    printf("%s disconnected or error occurred.\n", component);
+    printf("%s disconnected or error occurred.\n\n", component);
 }
