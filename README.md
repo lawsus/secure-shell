@@ -54,7 +54,7 @@ A simple **secure shell** (SSH) implementation in C with a focus on building cry
 - Tried to code key derivation function and symmetric encryption functions, but it wasn't working out very well.
 - Decided to use openssl implementations for aes and kdfs, using PKCS5_PBKDF2_HMAC and aes_cbc.
 
-#### 11/24
+#### 11/24/23
 - Finished encrypting and decrypting messages sent between client and server.
 - Implemented command execution and response with popen.
 
