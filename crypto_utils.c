@@ -163,3 +163,134 @@ long long find_primitive_root(long long p) {
     }
     return -1;  // Shouldn't reach here for prime p
 }
+
+// int aes_encrypt(unsigned char *plaintext, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
+//     AES_KEY enc_key;
+
+//     AES_set_encrypt_key(key, 128, &enc_key); // Set the encryption key
+//     int size = AES_cbc_encrypt(plaintext, ciphertext, sizeof(plaintext), &enc_key, iv, AES_ENCRYPT);
+//     return size;
+// }
+
+// int aes_encrypt(unsigned char *plaintext, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
+//     AES_KEY enc_key;
+
+//     AES_set_encrypt_key(key, 128, &enc_key); // Set the encryption key
+
+//     // Calculate the size of the plaintext with padding
+//     int plaintext_len = strlen((char *)plaintext);
+//     int padded_size = ((plaintext_len / AES_BLOCK_SIZE) + 1) * AES_BLOCK_SIZE;
+
+//     // Perform the encryption
+//     AES_cbc_encrypt(plaintext, ciphertext, padded_size, &enc_key, iv, AES_ENCRYPT);
+
+//     return padded_size; // Return the size of the ciphertext
+// }
+
+// int aes_decrypt(unsigned char *ciphertext, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
+//     AES_KEY dec_key;
+
+//     AES_set_decrypt_key(key, 128, &dec_key); // Set the decryption key
+//     int size = AES_cbc_encrypt(ciphertext, plaintext, sizeof(ciphertext), &dec_key, iv, AES_DECRYPT);
+//     return size;
+// }
+
+// int aes_decrypt(unsigned char *ciphertext, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
+//     AES_KEY dec_key;
+
+//     AES_set_decrypt_key(key, 128, &dec_key); // Set the decryption key
+
+//     // The size of ciphertext is assumed to be a multiple of AES_BLOCK_SIZE
+//     int ciphertext_len = AES_BLOCK_SIZE * (strlen((char *)ciphertext) / AES_BLOCK_SIZE);
+
+//     // Perform the decryption
+//     AES_cbc_encrypt(ciphertext, plaintext, ciphertext_len, &dec_key, iv, AES_DECRYPT);
+
+//     // Assuming the plaintext is null-terminated
+//     return strlen((char *)plaintext); // Return the size of the plaintext
+// }
+
+// int aes_encrypt(unsigned char *plaintext, unsigned char *key, unsigned char *iv, unsigned char *ciphertext);
+// int aes_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext);
+
+// int aes_encrypt(unsigned char *plaintext, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
+//     AES_KEY enc_key;
+//     AES_set_encrypt_key(key, 128, &enc_key);
+
+//     int plaintext_len = strlen((char *)plaintext);
+//     int padding = AES_BLOCK_SIZE - (plaintext_len % AES_BLOCK_SIZE);
+//     int padded_size = plaintext_len + padding;
+
+//     // Copy plaintext to a new buffer and add padding
+//     unsigned char padded_plaintext[padded_size];
+//     memcpy(padded_plaintext, plaintext, plaintext_len);
+//     memset(padded_plaintext + plaintext_len, padding, padding);
+
+//     AES_cbc_encrypt(padded_plaintext, ciphertext, padded_size, &enc_key, iv, AES_ENCRYPT);
+//     return padded_size;
+// }
+
+// implemented with the help of chat gpt for padding
+
+int aes_encrypt(unsigned char *plaintext, unsigned char *key, unsigned char *iv, unsigned char *ciphertext) {
+    AES_KEY enc_key;
+    unsigned char temp_iv[AES_BLOCK_SIZE];  // Temporary IV buffer
+
+    // Copy the original IV to the temporary buffer
+    memcpy(temp_iv, iv, AES_BLOCK_SIZE);
+
+    AES_set_encrypt_key(key, 128, &enc_key); // Set the encryption key
+
+    // Calculate the size of the plaintext with padding
+    int plaintext_len = strlen((char *)plaintext);
+    int padded_size = ((plaintext_len / AES_BLOCK_SIZE) + 1) * AES_BLOCK_SIZE;
+
+    // Perform the encryption using temp_iv instead of the original iv
+    AES_cbc_encrypt(plaintext, ciphertext, padded_size, &enc_key, temp_iv, AES_ENCRYPT);
+
+    return padded_size; // Return the size of the ciphertext
+}
+
+int aes_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext) {
+    AES_KEY dec_key;
+    AES_set_decrypt_key(key, 128, &dec_key);
+
+    AES_cbc_encrypt(ciphertext, plaintext, ciphertext_len, &dec_key, iv, AES_DECRYPT);
+
+    // Remove padding
+    int padding = plaintext[ciphertext_len - 1];
+    int plaintext_len = ciphertext_len - padding;
+    plaintext[plaintext_len] = '\0'; // Assuming plaintext is ASCII and null-terminated
+    return plaintext_len;
+}
+
+void long_long_to_byte_array(long long num, unsigned char *byte_array, size_t byte_array_len) {
+    if (byte_array_len < sizeof(num)) return;
+    memset(byte_array, 0, byte_array_len); // zero out important !!!
+    memcpy(byte_array, &num, sizeof(num));
+    // if (byte_array_len < sizeof(num)) return;
+    // long long num_be = OSSwapHostToBigInt64(num); // Convert to big-endian byte order
+    // memcpy(byte_array, &num_be, sizeof(num_be));
+}
+
+void derive_aes_key_from_shared_secret(long long shared_secret, unsigned char *key, size_t key_len) {
+    unsigned char shared_secret_bytes[sizeof(shared_secret)];
+    long_long_to_byte_array(shared_secret, shared_secret_bytes, sizeof(shared_secret_bytes));
+
+    printf("Shared Secret Bytes: ");
+    for (int i = 0; i < (int)sizeof(shared_secret_bytes); ++i) {
+        printf("%02x", shared_secret_bytes[i]);
+    }
+    printf("\n");
+
+    // unsigned char salt[SALT_LENGTH] = "XXXX";
+    unsigned char salt[SALT_LENGTH] = {'X', 'X', 'X', 'X'};
+    
+    PKCS5_PBKDF2_HMAC((char *)shared_secret_bytes, sizeof(shared_secret_bytes), salt, sizeof(salt), 10000, EVP_sha256(), key_len, key);
+
+    // printf("Derived Key: ");
+    // for (int i = 0; i < KEY_LENGTH; ++i) {
+    //     printf("%02x", aes_key[i]);
+    // }
+    // printf("\n");
+}

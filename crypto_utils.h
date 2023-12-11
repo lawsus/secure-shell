@@ -1,6 +1,13 @@
 #pragma once
 
 #include "bignum.h"
+#include <openssl/aes.h>
+#include <openssl/rand.h>
+#include <openssl/evp.h>
+#include <string.h>
+
+#define KEY_LENGTH 32
+#define SALT_LENGTH 4
 
 /**
  * This function generates a random
@@ -42,3 +49,15 @@ int is_primitive_root(long long g, long long p);
  * prime number p.
  */
 long long find_primitive_root(long long p);
+
+
+// int aes_encrypt(unsigned char *plaintext, unsigned char *key, unsigned char *iv, unsigned char *ciphertext);
+// int aes_decrypt(unsigned char *ciphertext, unsigned char *key, unsigned char *iv, unsigned char *plaintext);
+
+int aes_encrypt(unsigned char *plaintext, unsigned char *key, unsigned char *iv, unsigned char *ciphertext);
+int aes_decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv, unsigned char *plaintext);
+
+// long long to byte array
+void long_long_to_byte_array(long long num, unsigned char *byte_array, size_t byte_array_len);
+
+void derive_aes_key_from_shared_secret(long long shared_secret, unsigned char *key, size_t key_len);

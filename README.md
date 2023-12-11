@@ -41,10 +41,22 @@ A simple **secure shell** (SSH) implementation in C with a focus on building cry
 #### 10/19/23
 - Learned about and started implementation of bignum (long long to big num and addition).
 
-#### 10/26/23 (midterm season pushed back progress)
+#### 10/26/23
 - Finished implementation of bignum.
 - Integrated bignum into crypto_util functions, allowing for accurate evalulation of keys without overflow.
 - Tested bignum functionality.
+
+#### 11/20/23
+- Fixed issue with clearing buffers for key exchange.
+- Learn more about key derivation functions + symmetric encryption functions.
+
+#### 11/23/23
+- Tried to code key derivation function and symmetric encryption functions, but it wasn't working out very well.
+- Decided to use openssl implementations for aes and kdfs, using PKCS5_PBKDF2_HMAC and aes_cbc.
+
+#### 11/24
+- Finished encrypting and decrypting messages sent between client and server.
+- Implemented command execution and response with popen.
 
 #### TODO LIST
 - **TODO**: ~~Fork in server for multi processing.~~
@@ -52,11 +64,14 @@ A simple **secure shell** (SSH) implementation in C with a focus on building cry
 - **TODO**: ~~Overflow error in power function for long long during intermediate calculations (possible solutions: int128, multiplication func, custom struct).~~
 - **TODO**: ~~`g` must be a primitive root modulo `p`.~~
 - **TODO**: ~~Make my own bignum data type.~~
-- **TODO**: Make a key derivation function.
-- **TODO**: Make a symmetric encryption function such as AES.
-- **TODO**: Make a MAC function.
-- **TODO**: Implement nonce.
+- **TODO**: ~~Run commands and get output.~~
+- **TODO**: ~~Successfully encrypt and decrypt all messages between client and server.~~
 
 #### Future TODO
 - **FUTURE**: Change DH to elliptic curve DH with curve25519 for more secure key exchange (already have implementation in Python, just need to rewrite it in C).
+- **FUTURE**: Improve efficiency of bignum / crypto util functions.
 - **FUTURE**: Clean up documentation / header files
+- **FUTURE**: Implement nonce.
+- **FUTURE**: Implement my own kdf + symmetric encryption function.
+- **FUTURE**: Fix issue with reading in large responses.
+- **FUTURE**: Implement current directory.
